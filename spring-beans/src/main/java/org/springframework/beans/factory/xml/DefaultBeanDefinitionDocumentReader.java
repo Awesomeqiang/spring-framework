@@ -93,6 +93,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	@Override
 	public void registerBeanDefinitions(Document doc, XmlReaderContext readerContext) {
 		this.readerContext = readerContext;
+		//做注册操作
 		doRegisterBeanDefinitions(doc.getDocumentElement());
 	}
 
@@ -128,6 +129,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 		BeanDefinitionParserDelegate parent = this.delegate;
 		this.delegate = createDelegate(getReaderContext(), root, parent);
 
+		//是否是默认的命名空间
 		if (this.delegate.isDefaultNamespace(root)) {
 			String profileSpec = root.getAttribute(PROFILE_ATTRIBUTE);
 			if (StringUtils.hasText(profileSpec)) {
@@ -145,8 +147,11 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 			}
 		}
 
+		//空方法，供扩展使用
 		preProcessXml(root);
+		//对命名空间进行解析，得到相应的命名空间类
 		parseBeanDefinitions(root, this.delegate);
+		//空方法，供扩展使用
 		postProcessXml(root);
 
 		this.delegate = parent;
@@ -166,22 +171,29 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	 * @param root the DOM root element of the document
 	 */
 	protected void parseBeanDefinitions(Element root, BeanDefinitionParserDelegate delegate) {
+		//判断根节点是否为默认命名空间元素
 		if (delegate.isDefaultNamespace(root)) {
 			NodeList nl = root.getChildNodes();
+			//遍历根节点下的子节点
 			for (int i = 0; i < nl.getLength(); i++) {
 				Node node = nl.item(i);
+				//是元素节点
 				if (node instanceof Element) {
 					Element ele = (Element) node;
+					// 判断自节点是否为默认命名空间元素
 					if (delegate.isDefaultNamespace(ele)) {
+						//解析beans默认命名空间
 						parseDefaultElement(ele, delegate);
 					}
 					else {
+						// 如子节点是诸如<A:xxx>开头，则委托给A命名空间解析器解析
 						delegate.parseCustomElement(ele);
 					}
 				}
 			}
 		}
 		else {
+			// 如根节点是诸如<A:xxx>开头，则委托给交由A命名空间解析器解析
 			delegate.parseCustomElement(root);
 		}
 	}

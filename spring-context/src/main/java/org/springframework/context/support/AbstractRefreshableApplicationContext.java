@@ -122,15 +122,27 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	 */
 	@Override
 	protected final void refreshBeanFactory() throws BeansException {
+		//如果容器已经存在，先进性销毁
 		if (hasBeanFactory()) {
 			destroyBeans();
 			closeBeanFactory();
 		}
 		try {
+			//初始化一个DefaultListableBeanFactory
 			DefaultListableBeanFactory beanFactory = createBeanFactory();
 			beanFactory.setSerializationId(getId());
+
+			//供子类拓展
 			customizeBeanFactory(beanFactory);
+
+			//加载xml配置，在这里会将xml文件配置解析成Spring容器中的一个个BeanDefinition。
+			//在这个过程，中间还会进行XmlBeanDefinitionReader初始化，配置文件路径解析成相应资源以及文件格式校验等操作，
+			// 最后会调用DefaultBeanDefinitionDocumentReader#parseBeanDefinitions方法进行资源解析
+
+			//到这里断了。。。
+			// 加载xml配置
 			loadBeanDefinitions(beanFactory);
+
 			synchronized (this.beanFactoryMonitor) {
 				this.beanFactory = beanFactory;
 			}

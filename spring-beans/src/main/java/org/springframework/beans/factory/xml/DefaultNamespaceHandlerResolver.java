@@ -115,24 +115,40 @@ public class DefaultNamespaceHandlerResolver implements NamespaceHandlerResolver
 	@Override
 	@Nullable
 	public NamespaceHandler resolve(String namespaceUri) {
+		// 解析类路径下所有META-INF/spring.handlers文件的映射
+		// 对于pigeon，可在pigeon-config模块下找到以下映射
+		// http\://code.dianping.com/schema/pigeon=com.dianping.pigeon.config.spring.CommonNamespaceHandler
+
+		//String 为命名空间，Object为对应的NameSpaceHandler
 		Map<String, Object> handlerMappings = getHandlerMappings();
+
+
 		Object handlerOrClassName = handlerMappings.get(namespaceUri);
 		if (handlerOrClassName == null) {
 			return null;
 		}
+
 		else if (handlerOrClassName instanceof NamespaceHandler) {
+			// 如果是实例，直接返回
 			return (NamespaceHandler) handlerOrClassName;
 		}
 		else {
+			// 实例并初始化相关处理器
 			String className = (String) handlerOrClassName;
 			try {
 				Class<?> handlerClass = ClassUtils.forName(className, this.classLoader);
+				//Pigeon 的自定义命名空间处理器的className为com.dianping.pigeon.config.spring.CommonNamespaceHandler,
+				//该处理器继续了NameSpaceHandlerSupport 而NameSpaceHandlerSupport继承了NamespaceHandler接口。
+				//由此可见Spring提供自定义命名空间处理类必须继承NamespaceHandler接口
 				if (!NamespaceHandler.class.isAssignableFrom(handlerClass)) {
 					throw new FatalBeanException("Class [" + className + "] for namespace [" + namespaceUri +
 							"] does not implement the [" + NamespaceHandler.class.getName() + "] interface");
 				}
 				NamespaceHandler namespaceHandler = (NamespaceHandler) BeanUtils.instantiateClass(handlerClass);
+				// 调用命名空间解析器的init方法，初始化需要解析的标签
+				//拓展类需要继承NamespaceHandler类，并实现init方法
 				namespaceHandler.init();
+				// 缓存起来
 				handlerMappings.put(namespaceUri, namespaceHandler);
 				return namespaceHandler;
 			}

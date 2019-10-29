@@ -1379,15 +1379,18 @@ public class BeanDefinitionParserDelegate {
 	 */
 	@Nullable
 	public BeanDefinition parseCustomElement(Element ele, @Nullable BeanDefinition containingBd) {
+		// 对于<pigeon:xx>节点，uri为xml中定义的http://code.dianping.com/schema/pigeon
 		String namespaceUri = getNamespaceURI(ele);
 		if (namespaceUri == null) {
 			return null;
 		}
+		//获得自定义命名空间处理类
 		NamespaceHandler handler = this.readerContext.getNamespaceHandlerResolver().resolve(namespaceUri);
 		if (handler == null) {
 			error("Unable to locate Spring NamespaceHandler for XML schema namespace [" + namespaceUri + "]", ele);
 			return null;
 		}
+		// 执行处理器解析方法
 		return handler.parse(ele, new ParserContext(this.readerContext, this, containingBd));
 	}
 
